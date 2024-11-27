@@ -7,7 +7,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 import os
 import h5py
 import PIL
-# from PIL import Image
+import faiss
+
 #Load pretrained MobileNet model
 model = MobileNet(weights='imagenet', include_top=False, pooling='avg')
 
@@ -34,7 +35,6 @@ def correlation_similarity(vector1, vector2):
     vector1 = np.array(vector1)
     vector2 = np.array(vector2)
     
-    
     correlation_scores = []
     
     # Calculate correlation coefficient
@@ -44,6 +44,10 @@ def correlation_similarity(vector1, vector2):
     else:
         correlation_scores.append(np.corrcoef(vector1, vector2)[0, 1])
     return correlation_scores
+
+def normalize_feature(features):
+    norms = np.linalg.norm(features, axis=1, keepdims=True)
+    return features/norms
 
 #directory of dataset images 
 dataset_list = pd.read_csv("./demo/test1.csv")
@@ -55,34 +59,29 @@ for img_path in imgdata_paths:
     features = extract_features(img_path, model)
     dataset_features.append(features)
     
-dataset_features = np.array(dataset_features)
+# dataset_features = np.array(dataset_features)
+dataset_features = np.array(dataset_features).astype('float32')
+
+normalized_dataset_features = normalize_feature(dataset_features)
 
 #Extract features for the external image
 external_img = pd.read_csv("./demo/test2.csv")
 external_img_path = external_img.iloc[1,1]
-external_features = extract_features(external_img_path, model)
+external_features = extract_features(external_img_path, model).astype('float32')
+
+normalized_external_features = normalize_feature(np.expand_dims(external_features, axis=0))
+
 
 #Compute similarities
 similarities_cos = cosine_similarity([external_features], dataset_features)
 similarities_corr = correlation_similarity([external_features], dataset_features)
+#compute cosine similarity using FAISS
+faiss_index = faiss.IndexFlatIP(normalized_dataset_features.shape[1])
+faiss_index.add(normalized_dataset_features)
+k=5
+distances, indices = faiss_index.search(normalized_external_features, k)
 
-# Find the top 5 most similar images
-top_indices = np.argsort(similarities[0])[::-1][:5]
+# Find the top 5 most similar imagestop_indices = np.argsort(similarities[0])[::-1][:5]
 print("Top 5 similar images:")
 for idx in top_indices:
     print(f"Image: {dataset_images[idx]}, Similarity: {similarities[0][idx]}")
-
-
-
-
-
-
-
-
-
-
-
-"""
-Use Advanced Search Tools (e.g., FAISS):
-For faster search across 8K images, use approximate nearest neighbors (e.g., FAISS) regardless of the similarity metric.
-"""
