@@ -1,5 +1,5 @@
 import pickle
-import lmdb
+# import lmdb
 import spotipy
 
 # def save_img(image_list, directory):
@@ -8,12 +8,12 @@ import spotipy
 #     for img in image_list :
     
 
-def store_image_lmbd(images_list, img_db_path):
-    map_size = len(images_list) * 300 * 300 * 10 
-    env = lmdb.open(img_db_path, map_size=map_size)
-    with env.begin(write=True) as txn:
-        for i, img in enumerate(images_list):
-            txn.put(f'image_{i}'.encode(), pickle.dumps(img))
+# def store_image_lmbd(images_list, img_db_path):
+#     map_size = len(images_list) * 300 * 300 * 10 
+#     env = lmdb.open(img_db_path, map_size=map_size)
+#     with env.begin(write=True) as txn:
+#         for i, img in enumerate(images_list):
+#             txn.put(f'image_{i}'.encode(), pickle.dumps(img))
 
 def get_tracks_list(sp_rqrmt, url_playlist="https://open.spotify.com/collection/tracks", debug_mode=False):
     all_tracks = []

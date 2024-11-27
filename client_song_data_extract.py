@@ -4,7 +4,6 @@ from _sptf_auth import sp
 import utils
 import re
 DEBUG = os.getenv("DEBUG") == "True"
-
 if DEBUG:
     print("Mode débogage activé")
 
@@ -17,16 +16,17 @@ tracks = utils.get_tracks_list(sp_rqrmt=sp,
 # music_img_data = {}
 music_id_data = pd.DataFrame()
 for index, song in enumerate(tracks):
-    # music_img_data[f'{index}'] = song['track']["album"]["images"][1]['url']
-    song_data = {
-        'id': index, 
-        'name': song['track']['name'],
-        'album': song['track']['album']['name'],
-        'artists': song['track']['artists'][0]['name'],  #TODO: check length to concat all artists 
-        'url': song['track']["album"]["images"][1]['url']
-    }
-   
-    music_id_data = music_id_data._append(song_data, ignore_index=True)
+
+    if len(tracks[index]['track']["album"]["images"]) != 0:
+        #TODO: check length to concat all artists         
+        song_data = {
+            'id': index,
+            'name': song['track']['name'],
+            'album': song['track']['album']['name'],
+            'artists': song['track']['artists'][0]['name'],
+            'url': song['track']["album"]["images"][1]['url']
+        }
+        music_id_data = music_id_data._append(song_data, ignore_index=True)
 
 music_id_data = music_id_data.drop_duplicates(subset=['album'], ignore_index = False)
 # filtered_index = music_id_data["index"].astype(str).tolist()

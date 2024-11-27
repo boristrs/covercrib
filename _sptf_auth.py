@@ -1,19 +1,14 @@
 import spotipy
 import os
 import pandas as pd
-# from PIL import Image
 import utils
 from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 from dotenv import load_dotenv
-
 load_dotenv()
-DEBUG = os.getenv("DEBUG") == "True"
 
+DEBUG = os.getenv("DEBUG") == "True"
 if DEBUG:
     print("Mode débogage activé")
-
-# CLIENT_ID=44405bf3c1dc428fa65da245e70ed8d9
-# CLIENT_SECRET=60678404c8e140c7912bee97c2334ded
 
 CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')

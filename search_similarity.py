@@ -15,8 +15,9 @@ import utils
 model = MobileNet(weights='imagenet', include_top=False, pooling='avg')
 
 #directory of dataset images 
-dataset_list = pd.read_csv("./demo/test1.csv")
+# dataset_list = pd.read_csv("./demo/test1.csv")
 imgdata_paths = dataset_list['url']
+
 
 #Extract features for all dataset images 
 dataset_features = []
