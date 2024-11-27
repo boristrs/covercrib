@@ -8,46 +8,11 @@ import os
 import h5py
 import PIL
 import faiss
+import utils
 
+#TODO: Creer une classe pour le modele ? 
 #Load pretrained MobileNet model
 model = MobileNet(weights='imagenet', include_top=False, pooling='avg')
-
-#Function to extract features
-def extract_features(img_path, model):
-    img=image.load_img(img_path, target_size=(224,224)) #TODO: check size of album covers
-    # img=img.convert("RGB")
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
-    features = model.predict(img_array)
-    return features.flatten()
-
-
-def correlation_similarity(vector1, vector2):
-    """
-    Calculate correlation similarity between two vectors.
-    
-    Args:
-    Return:
-    
-    """
-    # Ensure the vectors are NumPy arrays
-    vector1 = np.array(vector1)
-    vector2 = np.array(vector2)
-    
-    correlation_scores = []
-    
-    # Calculate correlation coefficient
-    if len(vector2) > 1:
-        for vector in vector2:
-            correlation_scores.append(np.corrcoef(vector1, vector)[0, 1])
-    else:
-        correlation_scores.append(np.corrcoef(vector1, vector2)[0, 1])
-    return correlation_scores
-
-def normalize_feature(features):
-    norms = np.linalg.norm(features, axis=1, keepdims=True)
-    return features/norms
 
 #directory of dataset images 
 dataset_list = pd.read_csv("./demo/test1.csv")
@@ -81,7 +46,3 @@ faiss_index.add(normalized_dataset_features)
 k=5
 distances, indices = faiss_index.search(normalized_external_features, k)
 
-# Find the top 5 most similar imagestop_indices = np.argsort(similarities[0])[::-1][:5]
-print("Top 5 similar images:")
-for idx in top_indices:
-    print(f"Image: {dataset_images[idx]}, Similarity: {similarities[0][idx]}")
