@@ -7,6 +7,10 @@ from PIL import Image
 from io import BytesIO
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.mobilenet import preprocess_input
+from tensorflow.keras.applications import MobileNet
+
+
+
 # def save_img(image_list, directory):
 #     if not os.path.exists(directory):
 #         os.makedirs(directory)
@@ -56,9 +60,9 @@ def get_tracks_list(sp_rqrmt, url_playlist="https://open.spotify.com/collection/
     return all_tracks
 
 
-#Function to extract features
+# Function to extract features
 def extract_features(img_path, model):
-    img=image.load_img(img_path, target_size=(224,224)) #TODO: check size of album covers
+    img = image.load_img(img_path, target_size=(224, 224))  # size of album covers: 300*300
     # img=img.convert("RGB")
     img_array = image.img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)
@@ -89,11 +93,13 @@ def correlation_similarity(vector1, vector2):
         correlation_scores.append(np.corrcoef(vector1, vector2)[0, 1])
     return correlation_scores
 
+
 def normalize_feature(features):
     norms = np.linalg.norm(features, axis=1, keepdims=True)
     return features/norms
 
-def get_img(url):    
+
+def get_img(url):  
     # Télécharger l'image depuis l'URL
     response = requests.get(url)
     if response.status_code == 200:  # Vérifie si la requête est réussie
@@ -109,3 +115,7 @@ def get_img(url):
     else:
         print(f"Erreur lors du téléchargement : {response.status_code}")
         return False
+
+def load_model():
+    model = MobileNet(weights='imagenet', include_top=False, pooling='avg')
+    return model

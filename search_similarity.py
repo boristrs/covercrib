@@ -13,33 +13,45 @@ import utils as ut
 
 #TODO: Creer une classe pour le modele ? 
 #Load pretrained MobileNet model
-model = MobileNet(weights='imagenet', include_top=False, pooling='avg')
+model = ut.load_model()
 
 #directory of dataset images 
 # dataset_list = pd.read_csv("./demo/test1.csv")
-dataset_list = pd.read_csv("./data/test_playlist.csv")
-
-
+# dataset_list = pd.read_csv("./data/test_playlist.csv")
 
 
 #Extract features for all dataset images 
-dataset_features = []
-for img_url in dataset_list['url']:
-    try:
-        features = ut.extract_features(ut.get_img(img_url), model)
-        dataset_features.append(features)
-    except Exception as e:
-        # Handle exceptions if any occur (e.g., network issues, invalid image URLs)
-        print(f"Error processing image {img_url}: {e}")
-        # You could also choose to append a default value if needed, e.g., an empty list or None
-        # dataset_features.append(None)
+# dataset_features = []
+# for img_url in dataset_list['url']:
+#     try:
+#         features = ut.extract_features(ut.get_img(img_url), model)
+#         dataset_features.append(features)
+#     except Exception as e:
+#         # Handle exceptions if any occur (e.g., network issues, invalid image URLs)
+#         print(f"Error processing image {img_url}: {e}")
+#         # You could also choose to append a default value if needed, e.g., an empty list or None
+#         # dataset_features.append(None)
+# dataset_features = np.array(dataset_features).astype('float32')
 
-# dataset_features = np.array(dataset_features)
-dataset_features = np.array(dataset_features).astype('float32')
+# index_column = dataset_list['album']
 
-index_column = dataset_list['album']
+covers_features_path = "data/liked_tracks_cover_features.h5"
+if os.path.exists(covers_features_path):
+    print("Features file already exists. Loading...")
+    with h5py.File(covers_features_path, "r") as h5file:
+        #Load features
+        lt_features = h5file["features"][:]
+        #Load album names
+        album_names = h5file["album_names"][:]
+        album_names = [name.decode('utf-8') for name in h5file["album_names"][:]]
+else:
+    # Proceed with feature extraction
+    breakpoint
 
-normalized_dataset_features = ut.normalize_feature(dataset_features)
+#TODO: comparer le nom des albums avec la liste de get_tracks_list pour saovir s'il faut a mettre à jour 
+# de combien  d'images: oui ou non 
+
+normalized_dataset_features = ut.normalize_feature(lt_features)
 
 #Extract features for the external image
 external_img = pd.read_csv("./data/demo/test2.csv")
@@ -50,11 +62,34 @@ normalized_external_features = ut.normalize_feature(np.expand_dims(external_feat
 
 
 #Compute similarities
-similarities_cos = cosine_similarity([external_features], dataset_features)
-similarities_corr = ut.correlation_similarity([external_features], dataset_features)
+similarities_cos = pd.DataFrame({
+    "album": album_names,
+    "similarity": cosine_similarity([external_features], lt_features)[0]
+})
+similarities_cos = similarities_cos.sort_values(by="similarity", ascending=False)
+
+similarities_corr = pd.DataFrame({
+    "album": album_names,
+    "similarity":  ut.correlation_similarity([external_features], lt_features)
+})
+similarities_corr = similarities_corr.sort_values(by="similarity", ascending=False)
+
 #compute cosine similarity using FAISS
 faiss_index = faiss.IndexFlatIP(normalized_dataset_features.shape[1])
 faiss_index.add(normalized_dataset_features)
-k=5
+k = 5
 distances, indices = faiss_index.search(normalized_external_features, k)
+results_faiss = []
+for query_idx, neighbor_indices in enumerate(indices):
+    for rank, neighbor_idx in enumerate(neighbor_indices):
+        results_faiss.append({
+            "neighbor_album": album_names[neighbor_idx],
+            "distance": distances[query_idx, rank]
+        })
+similarities_faiss = pd.DataFrame(results_faiss)
 
+
+
+#commit
+#load les 8k et une photo à mettre en story 
+#test 1 
