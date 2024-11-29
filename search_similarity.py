@@ -32,48 +32,51 @@ else:
 # de combien  d'images: oui ou non 
 
 normalized_dataset_features = ut.normalize_feature(lt_features)
+for imgjpg_name in os.listdir("data/input_image"):
+    print(imgjpg_name)
+    #Extract features for the external image
+    #TODO: add input for image
+    # external_img = pd.read_csv("./data/input_image/test2.csv")
+    # external_img_path = external_img.iloc[1,1]
+    # external_img_path = "data/input_image/20240802_201959.jpg"
+    external_img_path = f"data/input_image/{imgjpg_name}"
+    external_features = ut.extract_features(external_img_path, model).astype('float32')
 
-#Extract features for the external image
-#TODO: add input for image
-# external_img = pd.read_csv("./data/input_image/test2.csv")
-# external_img_path = external_img.iloc[1,1]
-external_img_path = "data/input_image/IMG_20231102_175238.jpg"
-external_features = ut.extract_features(external_img_path, model).astype('float32')
-
-normalized_external_features = ut.normalize_feature(np.expand_dims(external_features, axis=0))
+    normalized_external_features = ut.normalize_feature(np.expand_dims(external_features, axis=0))
 
 
-#Compute similarities
-similarities_cos = pd.DataFrame({
-    "album": album_names,
-    "similarity": cosine_similarity([external_features], lt_features)[0]
-})
-similarities_cos = similarities_cos.sort_values(by="similarity", ascending=False)
+    #Compute similarities
+    print("Compute similarities...")
+    similarities_cos = pd.DataFrame({
+        "album": album_names,
+        "similarity": cosine_similarity([external_features], lt_features)[0]
+    })
+    similarities_cos = similarities_cos.sort_values(by="similarity", ascending=False)
 
-similarities_corr = pd.DataFrame({
-    "album": album_names,
-    "similarity":  ut.correlation_similarity([external_features], lt_features)
-})
-similarities_corr = similarities_corr.sort_values(by="similarity", ascending=False)
+    similarities_corr = pd.DataFrame({
+        "album": album_names,
+        "similarity":  ut.correlation_similarity([external_features], lt_features)
+    })
+    similarities_corr = similarities_corr.sort_values(by="similarity", ascending=False)
 
-#compute cosine similarity using FAISS
-faiss_index = faiss.IndexFlatIP(normalized_dataset_features.shape[1])
-faiss_index.add(normalized_dataset_features)
-k = 5
-distances, indices = faiss_index.search(normalized_external_features, k)
-results_faiss = []
-for query_idx, neighbor_indices in enumerate(indices):
-    for rank, neighbor_idx in enumerate(neighbor_indices):
-        results_faiss.append({
-            "neighbor_album": album_names[neighbor_idx],
-            "distance": distances[query_idx, rank]
-        })
-similarities_faiss = pd.DataFrame(results_faiss)
+    #compute cosine similarity using FAISS
+    faiss_index = faiss.IndexFlatIP(normalized_dataset_features.shape[1])
+    faiss_index.add(normalized_dataset_features)
+    k = 5
+    distances, indices = faiss_index.search(normalized_external_features, k)
+    results_faiss = []
+    for query_idx, neighbor_indices in enumerate(indices):
+        for rank, neighbor_idx in enumerate(neighbor_indices):
+            results_faiss.append({
+                "album": album_names[neighbor_idx],
+                "distance": distances[query_idx, rank]
+            })
+    similarities_faiss = pd.DataFrame(results_faiss)
 
-print("cosine distance :", similarities_cos.head())
-print("correlation distance :", similarities_corr.head())
-print("FAISS distance :", similarities_faiss)
-
+    print("cosine distance :", similarities_cos.head())
+    print("correlation distance :", similarities_corr.head())
+    print("FAISS distance :", similarities_faiss)
+    print(' ')
 
 #load les 8k et une photo à mettre en story 
 #test 1 
