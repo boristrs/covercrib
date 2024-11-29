@@ -8,32 +8,12 @@ import os
 import h5py
 import PIL
 import faiss
-# from utils import *
 import utils as ut
 
 #TODO: Creer une classe pour le modele ? 
 #Load pretrained MobileNet model
 model = ut.load_model()
 
-#directory of dataset images 
-# dataset_list = pd.read_csv("./demo/test1.csv")
-# dataset_list = pd.read_csv("./data/test_playlist.csv")
-
-
-#Extract features for all dataset images 
-# dataset_features = []
-# for img_url in dataset_list['url']:
-#     try:
-#         features = ut.extract_features(ut.get_img(img_url), model)
-#         dataset_features.append(features)
-#     except Exception as e:
-#         # Handle exceptions if any occur (e.g., network issues, invalid image URLs)
-#         print(f"Error processing image {img_url}: {e}")
-#         # You could also choose to append a default value if needed, e.g., an empty list or None
-#         # dataset_features.append(None)
-# dataset_features = np.array(dataset_features).astype('float32')
-
-# index_column = dataset_list['album']
 
 covers_features_path = "data/liked_tracks_cover_features.h5"
 if os.path.exists(covers_features_path):
@@ -89,7 +69,5 @@ for query_idx, neighbor_indices in enumerate(indices):
 similarities_faiss = pd.DataFrame(results_faiss)
 
 
-
-#commit
 #load les 8k et une photo à mettre en story 
 #test 1 

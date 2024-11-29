@@ -59,6 +59,11 @@ for img_url in music_id_data['url']:
 
 #cannot append empty list if dl interrupted
 #hdf5 file creation
+if DEBUG:
+    hdf5_file_name = "data/DEBUG_liked_tracks_cover_features.h5"
+else:
+     hdf5_file_name = "data/liked_tracks_cover_features.h5"
+     
 with h5py.File("data/liked_tracks_cover_features.h5", "w") as h5file:
     #Store features as datset
     h5file.create_dataset("features", data=music_cover_features, dtype="float32")
@@ -67,7 +72,12 @@ with h5py.File("data/liked_tracks_cover_features.h5", "w") as h5file:
     h5file.create_dataset("album_names", data=music_id_data['album'], dtype=h5py.string_dtype(encoding="utf-8"))
 
 #  csv save to double check indexation
-music_id_data.to_csv('data/test_playlist.csv', index=False)
+if DEBUG:
+    music_id_data.to_csv('data/test_playlist.csv', index=False)
+else:
+     music_id_data.to_csv('data/liked_tacks_playlist.csv', index=False)
+
+
 
 
 
