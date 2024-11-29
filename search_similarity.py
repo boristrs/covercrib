@@ -8,80 +8,75 @@ import os
 import h5py
 import PIL
 import faiss
+import utils as ut
 
+#TODO: Creer une classe pour le modele ? 
 #Load pretrained MobileNet model
-model = MobileNet(weights='imagenet', include_top=False, pooling='avg')
-
-#Function to extract features
-def extract_features(img_path, model):
-    img=image.load_img(img_path, target_size=(224,224)) #TODO: check size of album covers
-    # img=img.convert("RGB")
-    img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
-    features = model.predict(img_array)
-    return features.flatten()
+model = ut.load_model()
 
 
-def correlation_similarity(vector1, vector2):
-    """
-    Calculate correlation similarity between two vectors.
-    
-    Args:
-    Return:
-    
-    """
-    # Ensure the vectors are NumPy arrays
-    vector1 = np.array(vector1)
-    vector2 = np.array(vector2)
-    
-    correlation_scores = []
-    
-    # Calculate correlation coefficient
-    if len(vector2) > 1:
-        for vector in vector2:
-            correlation_scores.append(np.corrcoef(vector1, vector)[0, 1])
-    else:
-        correlation_scores.append(np.corrcoef(vector1, vector2)[0, 1])
-    return correlation_scores
+covers_features_path = "data/liked_tracks_cover_features.h5"
+if os.path.exists(covers_features_path):
+    print("Features file already exists. Loading...")
+    with h5py.File(covers_features_path, "r") as h5file:
+        #Load features
+        lt_features = h5file["features"][:]
+        #Load album names
+        album_names = h5file["album_names"][:]
+        album_names = [name.decode('utf-8') for name in h5file["album_names"][:]]
+else:
+    # Proceed with feature extraction
+    breakpoint
 
-def normalize_feature(features):
-    norms = np.linalg.norm(features, axis=1, keepdims=True)
-    return features/norms
+#TODO: comparer le nom des albums avec la liste de get_tracks_list pour saovir s'il faut a mettre à jour 
+# de combien  d'images: oui ou non 
 
-#directory of dataset images 
-dataset_list = pd.read_csv("./demo/test1.csv")
-imgdata_paths = dataset_list['url']
+normalized_dataset_features = ut.normalize_feature(lt_features)
+for imgjpg_name in os.listdir("data/input_image"):
+    print(imgjpg_name)
+    #Extract features for the external image
+    #TODO: add input for image
+    # external_img = pd.read_csv("./data/input_image/test2.csv")
+    # external_img_path = external_img.iloc[1,1]
+    # external_img_path = "data/input_image/20240802_201959.jpg"
+    external_img_path = f"data/input_image/{imgjpg_name}"
+    external_features = ut.extract_features(external_img_path, model).astype('float32')
 
-#Extract features for all dataset images 
-dataset_features = []
-for img_path in imgdata_paths:
-    features = extract_features(img_path, model)
-    dataset_features.append(features)
-    
-# dataset_features = np.array(dataset_features)
-dataset_features = np.array(dataset_features).astype('float32')
-
-normalized_dataset_features = normalize_feature(dataset_features)
-
-#Extract features for the external image
-external_img = pd.read_csv("./demo/test2.csv")
-external_img_path = external_img.iloc[1,1]
-external_features = extract_features(external_img_path, model).astype('float32')
-
-normalized_external_features = normalize_feature(np.expand_dims(external_features, axis=0))
+    normalized_external_features = ut.normalize_feature(np.expand_dims(external_features, axis=0))
 
 
-#Compute similarities
-similarities_cos = cosine_similarity([external_features], dataset_features)
-similarities_corr = correlation_similarity([external_features], dataset_features)
-#compute cosine similarity using FAISS
-faiss_index = faiss.IndexFlatIP(normalized_dataset_features.shape[1])
-faiss_index.add(normalized_dataset_features)
-k=5
-distances, indices = faiss_index.search(normalized_external_features, k)
+    #Compute similarities
+    print("Compute similarities...")
+    similarities_cos = pd.DataFrame({
+        "album": album_names,
+        "similarity": cosine_similarity([external_features], lt_features)[0]
+    })
+    similarities_cos = similarities_cos.sort_values(by="similarity", ascending=False)
 
-# Find the top 5 most similar imagestop_indices = np.argsort(similarities[0])[::-1][:5]
-print("Top 5 similar images:")
-for idx in top_indices:
-    print(f"Image: {dataset_images[idx]}, Similarity: {similarities[0][idx]}")
+    similarities_corr = pd.DataFrame({
+        "album": album_names,
+        "similarity":  ut.correlation_similarity([external_features], lt_features)
+    })
+    similarities_corr = similarities_corr.sort_values(by="similarity", ascending=False)
+
+    #compute cosine similarity using FAISS
+    faiss_index = faiss.IndexFlatIP(normalized_dataset_features.shape[1])
+    faiss_index.add(normalized_dataset_features)
+    k = 5
+    distances, indices = faiss_index.search(normalized_external_features, k)
+    results_faiss = []
+    for query_idx, neighbor_indices in enumerate(indices):
+        for rank, neighbor_idx in enumerate(neighbor_indices):
+            results_faiss.append({
+                "album": album_names[neighbor_idx],
+                "distance": distances[query_idx, rank]
+            })
+    similarities_faiss = pd.DataFrame(results_faiss)
+
+    print("cosine distance :", similarities_cos.head())
+    print("correlation distance :", similarities_corr.head())
+    print("FAISS distance :", similarities_faiss)
+    print(' ')
+
+#load les 8k et une photo à mettre en story 
+#test 1 
