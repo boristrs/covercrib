@@ -1,7 +1,12 @@
 import pickle
 # import lmdb
 import spotipy
-
+import requests
+import numpy as np
+from PIL import Image
+from io import BytesIO
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.mobilenet import preprocess_input
 # def save_img(image_list, directory):
 #     if not os.path.exists(directory):
 #         os.makedirs(directory)
@@ -87,3 +92,20 @@ def correlation_similarity(vector1, vector2):
 def normalize_feature(features):
     norms = np.linalg.norm(features, axis=1, keepdims=True)
     return features/norms
+
+def get_img(url):    
+    # Télécharger l'image depuis l'URL
+    response = requests.get(url)
+    if response.status_code == 200:  # Vérifie si la requête est réussie
+        # Charger l'image avec Pillow
+        image = Image.open(BytesIO(response.content))
+        width, heigth = image.size
+        print(f"largeur :{width} et hauteur: {heigth}")
+        # image.show()  # Affiche l'image dans un visualiseur (selon votre système)
+        # Optionnel : Sauvegarder l'image localement
+        image.save("./temp/spotify_image.jpg")
+        print(f"Image au lien {url} téléchargée ")
+        return "temp/spotify_image.jpg"
+    else:
+        print(f"Erreur lors du téléchargement : {response.status_code}")
+        return False

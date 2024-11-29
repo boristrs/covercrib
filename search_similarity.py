@@ -8,7 +8,8 @@ import os
 import h5py
 import PIL
 import faiss
-import utils
+# from utils import *
+import utils as ut
 
 #TODO: Creer une classe pour le modele ? 
 #Load pretrained MobileNet model
@@ -16,31 +17,41 @@ model = MobileNet(weights='imagenet', include_top=False, pooling='avg')
 
 #directory of dataset images 
 # dataset_list = pd.read_csv("./demo/test1.csv")
-imgdata_paths = dataset_list['url']
+dataset_list = pd.read_csv("./data/test_playlist.csv")
+
+
 
 
 #Extract features for all dataset images 
 dataset_features = []
-for img_path in imgdata_paths:
-    features = extract_features(img_path, model)
-    dataset_features.append(features)
-    
+for img_url in dataset_list['url']:
+    try:
+        features = ut.extract_features(ut.get_img(img_url), model)
+        dataset_features.append(features)
+    except Exception as e:
+        # Handle exceptions if any occur (e.g., network issues, invalid image URLs)
+        print(f"Error processing image {img_url}: {e}")
+        # You could also choose to append a default value if needed, e.g., an empty list or None
+        # dataset_features.append(None)
+
 # dataset_features = np.array(dataset_features)
 dataset_features = np.array(dataset_features).astype('float32')
 
-normalized_dataset_features = normalize_feature(dataset_features)
+index_column = dataset_list['album']
+
+normalized_dataset_features = ut.normalize_feature(dataset_features)
 
 #Extract features for the external image
-external_img = pd.read_csv("./demo/test2.csv")
+external_img = pd.read_csv("./data/demo/test2.csv")
 external_img_path = external_img.iloc[1,1]
-external_features = extract_features(external_img_path, model).astype('float32')
+external_features = ut.extract_features(external_img_path, model).astype('float32')
 
-normalized_external_features = normalize_feature(np.expand_dims(external_features, axis=0))
+normalized_external_features = ut.normalize_feature(np.expand_dims(external_features, axis=0))
 
 
 #Compute similarities
 similarities_cos = cosine_similarity([external_features], dataset_features)
-similarities_corr = correlation_similarity([external_features], dataset_features)
+similarities_corr = ut.correlation_similarity([external_features], dataset_features)
 #compute cosine similarity using FAISS
 faiss_index = faiss.IndexFlatIP(normalized_dataset_features.shape[1])
 faiss_index.add(normalized_dataset_features)
