@@ -34,8 +34,10 @@ else:
 normalized_dataset_features = ut.normalize_feature(lt_features)
 
 #Extract features for the external image
-external_img = pd.read_csv("./data/demo/test2.csv")
-external_img_path = external_img.iloc[1,1]
+#TODO: add input for image
+# external_img = pd.read_csv("./data/input_image/test2.csv")
+# external_img_path = external_img.iloc[1,1]
+external_img_path = "data/input_image/IMG_20231102_175238.jpg"
 external_features = ut.extract_features(external_img_path, model).astype('float32')
 
 normalized_external_features = ut.normalize_feature(np.expand_dims(external_features, axis=0))
@@ -67,6 +69,10 @@ for query_idx, neighbor_indices in enumerate(indices):
             "distance": distances[query_idx, rank]
         })
 similarities_faiss = pd.DataFrame(results_faiss)
+
+print("cosine distance :", similarities_cos.head())
+print("correlation distance :", similarities_corr.head())
+print("FAISS distance :", similarities_faiss)
 
 
 #load les 8k et une photo à mettre en story 
