@@ -59,6 +59,38 @@ def get_tracks_list(sp_rqrmt, url_playlist="https://open.spotify.com/collection/
 
     return all_tracks
 
+# Batch processing function
+def batch_extract_features(urls, model, batch_size=32):
+    features = []  # Store extracted features
+    batch_images = []  # Temporary storage for batch
+    
+    for i, url in enumerate(urls):
+        try:
+            # Download and preprocess image
+            response = requests.get(url)
+            if response.status_code == 200:
+                img = Image.open(BytesIO(response.content)).convert("RGB")
+                img = img.resize((224, 224))  # Resize to target input size
+                img_array = image.img_to_array(img)
+                img_array = preprocess_input(img_array)
+                batch_images.append(img_array)
+            else:
+                print(f"Failed to download image from {url}")
+                batch_images.append(np.zeros((224, 224, 3)))  # Placeholder for failed downloads
+        except Exception as e:
+            print(f"Error processing URL {url}: {e}")
+            batch_images.append(np.zeros((224, 224, 3)))  # Placeholder for errors
+
+        # Process in batches
+        if len(batch_images) == batch_size or i == len(urls) - 1:
+            # Convert to NumPy array for batch prediction
+            batch_images = np.array(batch_images)
+            batch_features = model.predict(batch_images)  # Extract features in batch
+            features.extend(batch_features)  # Add to results
+            batch_images = []  # Reset batch
+
+    return np.array(features)
+
 
 # Function to extract features
 def extract_features(img_path, model):
@@ -105,12 +137,12 @@ def get_img(url):
     if response.status_code == 200:  # Vérifie si la requête est réussie
         # Charger l'image avec Pillow
         image = Image.open(BytesIO(response.content))
-        width, heigth = image.size
-        print(f"largeur :{width} et hauteur: {heigth}")
+        # width, heigth = image.size
+        # print(f"largeur :{width} et hauteur: {heigth}")
         # image.show()  # Affiche l'image dans un visualiseur (selon votre système)
         # Optionnel : Sauvegarder l'image localement
         image.save("./temp/spotify_image.jpg")
-        print(f"Image au lien {url} téléchargée ")
+        # print(f"Image au lien {url} téléchargée ")
         return "temp/spotify_image.jpg"
     else:
         print(f"Erreur lors du téléchargement : {response.status_code}")
