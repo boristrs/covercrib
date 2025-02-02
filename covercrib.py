@@ -1,6 +1,12 @@
 from dash import Dash, html, dcc, dash_table, Input, Output, State, ctx
 import dash_bootstrap_components as dbc
 
+import pandas as pd 
+from pathlib import Path 
+
+import client_song_data_extract
+import _sptf_auth
+
 # Initialize the app
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
@@ -82,6 +88,7 @@ app.layout = html.Div(
         html.Div(children=None,
                  id="log-output"),
         
+        dcc.Store(id="spotify-client-store")
         #footer button
         html.Div(
             style={"margin-top": "20px", "display": "flex", "justify-content": "space-between"},
@@ -93,35 +100,85 @@ app.layout = html.Div(
 )
 
 
+
+
+
+
+
+
+
 @app.callback(
-    Output("log-output", "children"),  # Target element to update
+    Output("")
+)
+
+
+
+
+
+@app.callback(
+    [Output("log-output", "children"),
+    Output("spotify-client-store", "data")],
     [Input("connect-spotify", "n_clicks"),
      Input("find-match", "n_clicks"),
      Input("update-song-list", "n_clicks"),
      Input("quit", "n_clicks")],
 )
 
-def handle_buttons(spotipy_co_button, find_match_button, update_song_button, quit_button):
-    triggered = ctx.triggered_id  # Detect which button was clicked
-    if triggered == "connect-spotify":
-        return print("Connecting to Spotify...")
-    elif triggered == "find-match":
-        return print("Finding matching covers...")
-    elif triggered == "upload-picture":
-        return print("upload picture button clicked...")
-    elif triggered == "update-song-list":
-        return print("Updating the song list...")
-    elif triggered == "quit":
-        return print("Quitting the application...")
+def handle_buttons(connect_clicks, match_clicks, update_clicks, quit_clicks):
+    """Handle actions to trigger in function of the clicked button 
+
+    Args:
+        connect_clicks (integer): n_clicks component property for 'connect-spotify' input
+        match_clicks (integer): n_clicks component property for 'find-match' input
+        update_clicks (integer): n_clicks component property for 'update-song-list' input
+        quit_clicks (integer): n_clicks component property for 'quit' input
+
+    Returns:
+        (list): message for button status, spotify client manager
+    """
+    ctx = Dash.callback_context
+    if not ctx.triggered:
+        return 'No action performed yet!', None
     else:
-        return print("No action performed yet!")
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+
+    if button_id == "connect-spotify":
+        sp = connect_to_spotify()
+        return "Connecting to Spotify...", sp
+    elif button_id == "find-match":
+        return "Finding matching covers...", Dash.no_update
+    elif button_id == "upload-picture":
+        return "upload picture button clicked...", Dash.no_update
+    elif button_id == "update-song-list":
+        return "Updating the song list...", Dash.no_update
+    elif button_id == "quit":
+        return "Quitting the application...", Dash.no_update
+    else:
+        return "No action performed yet!", Dash.no_update
 
 
 
 
+def use_of_spotify_client(sp):
+    
+    if sp:
+        print("Spotify client ready to use")
+        current_liked_track_list = extract_liked_song(sp) 
+        return current_liked_track_list
+    else:
+        return None
 
 
 
+#mettre une condition dans find match pour savoir si on utilise la variable locale ou le fichier csv pour trouver le match 
+# en fonction de si on vuet mettre à jour la liste ou pas 
+        # #root and path of savved tracks list
+        # # to save in constant file 
+        # file_name = "liked_tracks_playlist.csv"
+        # root_folder = "data"
+        
+        # file_path = next(root_folder.rglob(file_name), None)
+        # #if #liked tracks are same or not
 
 
 #Run the app 

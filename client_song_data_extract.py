@@ -12,34 +12,48 @@ if DEBUG:
     print("Mode débogage activé")
 
 
-#Retrieve liked tracks
-print("retrieving liked tracks from Spotify...")
-tracks = ut.get_tracks_list(sp_rqrmt=sp,
-                               url_playlist="https://open.spotify.com/collection/tracks",
-                               debug_mode=DEBUG)
-print('all liked tracks retrieved')
+def extract_liked_song(sp):
+    """_summary_
 
-#Extracting the metadata
-print("Extracting the metadata...")
-music_id_data = pd.DataFrame()
-for index, song in enumerate(tracks):
-    if len(tracks[index]['track']["album"]["images"]) != 0:
-        #TODO: check length to concat all artists         
-        song_data = {
-            'id': index,
-            'name': song['track']['name'],
-            'album': song['track']['album']['name'],
-            'artists': song['track']['artists'][0]['name'],
-            'url': song['track']["album"]["images"][1]['url']
-        }
-        music_id_data = music_id_data._append(song_data, ignore_index=True)
+    Args:
+        sp (_type_): _description_
+    """
+    print("retrieving liked tracks from Spotify...")
+    tracks = ut.get_tracks_list(sp_rqrmt=sp,
+                                url_playlist="https://open.spotify.com/collection/tracks",
+                                debug_mode=DEBUG)
+    print('all liked tracks retrieved')
 
-music_id_data = music_id_data.drop_duplicates(subset=['album'], ignore_index = False)
-music_id_data['name'] = music_id_data.loc[:,'name'].apply(lambda x: re.sub(',', ' ', x))
-music_id_data['album'] = music_id_data.loc[:,'album'].apply(lambda x: re.sub(',', ' ', x))
-#apply sur artists aussi si ut prends pluierus artistes dansget tracks playlist
-# music_id_data['artists'] = music_id_data['artists'].apply(lambda x: re.sub(',', ' ', x))
-print('music metadata extracted')
+    #Extracting the metadata
+    print("Extracting the metadata...")
+    music_id_data = pd.DataFrame()
+    for index, song in enumerate(tracks):
+        if len(tracks[index]['track']["album"]["images"]) != 0:
+            #TODO: check length to concat all artists         
+            song_data = {
+                'id': index,
+                'name': song['track']['name'],
+                'album': song['track']['album']['name'],
+                'artists': song['track']['artists'][0]['name'],
+                'url': song['track']["album"]["images"][1]['url']
+            }
+            music_id_data = music_id_data._append(song_data, ignore_index=True)
+
+    music_id_data = music_id_data.drop_duplicates(subset=['album'], ignore_index = False)
+    music_id_data['name'] = music_id_data.loc[:,'name'].apply(lambda x: re.sub(',', ' ', x))
+    music_id_data['album'] = music_id_data.loc[:,'album'].apply(lambda x: re.sub(',', ' ', x))
+    #apply sur artists aussi si ut prends pluierus artistes dansget tracks playlist
+    # music_id_data['artists'] = music_id_data['artists'].apply(lambda x: re.sub(',', ' ', x))
+    print('music metadata extracted')
+    
+    #  csv save to double check indexation
+    if DEBUG:
+        music_id_data.to_csv('data/test_playlist.csv', index=False)
+    else:
+        music_id_data.to_csv('data/liked_tacks_playlist.csv', index=False)
+    print("csv track list saved")
+
+    return music_id_data
 
 
 #Load pretrained MobileNet model
