@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from _sptf_auth import sp
+import _sptf_auth
 import utils
 import re
 import numpy as np
@@ -55,45 +55,45 @@ def extract_liked_song(sp):
 
     return music_id_data
 
+def extract_music_features(music_id_data):
+    #Load pretrained MobileNet model
+    model = ut.load_model()
+    #Extract features for all dataset images 
+    print("Start features' calculation with MobileNet... ")
+    urls = music_id_data['url']
+    batch_size = 32
+    music_cover_features = ut.batch_extract_features(urls, model, batch_size=batch_size)
+    # music_cover_features = []
+    # for img_url in music_id_data['url']:
+    #     try:
+    #         features = ut.extract_features(ut.get_img(img_url), model)
+    #         music_cover_features.append(features)
+    #     except Exception as e:
+    #         print(f"Error processing image {img_url}: {e}")
+    #         # You could also choose to append a default value to maintain the index
+    #         music_cover_features.append([])
+    print("features extraction ended")
 
-#Load pretrained MobileNet model
-model = ut.load_model()
-#Extract features for all dataset images 
-print("Start features' calculation with MobileNet... ")
-urls = music_id_data['url']
-batch_size = 32
-music_cover_features = ut.batch_extract_features(urls, model, batch_size=batch_size)
-# music_cover_features = []
-# for img_url in music_id_data['url']:
-#     try:
-#         features = ut.extract_features(ut.get_img(img_url), model)
-#         music_cover_features.append(features)
-#     except Exception as e:
-#         print(f"Error processing image {img_url}: {e}")
-#         # You could also choose to append a default value to maintain the index
-#         music_cover_features.append([])
-print("features extraction ended")
-
-#cannot append empty list if dl interrupted
-#hdf5 file creation
-if DEBUG:
-    hdf5_file_name = "data/DEBUG_liked_tracks_cover_features.h5"
-else:
-     hdf5_file_name = "data/liked_tracks_cover_features.h5"
-     
-with h5py.File("data/liked_tracks_cover_features.h5", "w") as h5file:
-    #Store features as datset
-    h5file.create_dataset("features", data=music_cover_features, dtype="float32")
-    
-    #Store album name as a dataset
-    h5file.create_dataset("album_names", data=music_id_data['album'], dtype=h5py.string_dtype(encoding="utf-8"))
-print("hdf5 file saved")
-#  csv save to double check indexation
-if DEBUG:
-    music_id_data.to_csv('data/test_playlist.csv', index=False)
-else:
-     music_id_data.to_csv('data/liked_tacks_playlist.csv', index=False)
-print("csv file saved")
+    #cannot append empty list if dl interrupted
+    #hdf5 file creation
+    if DEBUG:
+        hdf5_file_name = "data/DEBUG_liked_tracks_cover_features.h5"
+    else:
+        hdf5_file_name = "data/liked_tracks_cover_features.h5"
+        
+    with h5py.File(hdf5_file_name, "w") as h5file:
+        #Store features as datset
+        h5file.create_dataset("features", data=music_cover_features, dtype="float32")
+        
+        #Store album name as a dataset
+        h5file.create_dataset("album_names", data=music_id_data['album'], dtype=h5py.string_dtype(encoding="utf-8"))
+    print("hdf5 file saved")
+    #  csv save to double check indexation
+    if DEBUG:
+        music_id_data.to_csv('data/test_playlist.csv', index=False)
+    else:
+        music_id_data.to_csv('data/liked_tacks_playlist.csv', index=False)
+    print("csv file saved")
 
 
 

@@ -37,7 +37,7 @@ def connect_to_spotify():
                                                 client_secret=CLIENT_SECRET,
                                                 redirect_uri=REDIRECT_URI,
                                                 scope='user-library-read'))
-
+    print("connected to spotify")
     return sp
     
     # creer une classe par utilisateur avec ses infos dedans ses tracks etc ? 

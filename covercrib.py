@@ -2,7 +2,7 @@ from dash import Dash, html, dcc, dash_table, Input, Output, State, ctx
 import dash_bootstrap_components as dbc
 
 import pandas as pd 
-from pathlib import Path 
+from pathlib import Path
 
 import client_song_data_extract
 import _sptf_auth
@@ -18,8 +18,9 @@ app.layout = html.Div(
         html.H1("COVERCRIB", style={"text-align": "center", "margin-bottom": "20px"}),
 
         # Connect to Spotify button
-        html.Div(
-            dbc.Button("Connect to Spotify", id="connect-spotify", color="primary"),
+        html.Div([
+            # "Click if you want to connect to spotify and update your list of saved tracks",
+            dbc.Button("Connect to Spotify", id="connect-spotify", color="primary")],
             style={"margin-bottom": "20px"}
         ),
 
@@ -88,7 +89,7 @@ app.layout = html.Div(
         html.Div(children=None,
                  id="log-output"),
         
-        dcc.Store(id="spotify-client-store")
+        dcc.Store(id="spotify-client-store"),
         #footer button
         html.Div(
             style={"margin-top": "20px", "display": "flex", "justify-content": "space-between"},
@@ -107,9 +108,11 @@ app.layout = html.Div(
 
 
 
-@app.callback(
-    Output("")
-)
+# @app.callback(
+#     Output("matching-covers-table", "data"),  # Specify the component and property
+#     Input("find-match", "n_clicks"),  # The trigger input
+#     prevent_initial_call=True
+# )
 
 
 
@@ -122,9 +125,10 @@ app.layout = html.Div(
      Input("find-match", "n_clicks"),
      Input("update-song-list", "n_clicks"),
      Input("quit", "n_clicks")],
+    [State("spotify-client-store", "data")]
 )
 
-def handle_buttons(connect_clicks, match_clicks, update_clicks, quit_clicks):
+def handle_buttons(connect_clicks, match_clicks, update_clicks, quit_clicks, spotify_client_data):
     """Handle actions to trigger in function of the clicked button 
 
     Args:
@@ -136,15 +140,18 @@ def handle_buttons(connect_clicks, match_clicks, update_clicks, quit_clicks):
     Returns:
         (list): message for button status, spotify client manager
     """
-    ctx = Dash.callback_context
+    # ctx = ctx
     if not ctx.triggered:
         return 'No action performed yet!', None
     else:
         button_id = ctx.triggered[0]['prop_id'].split('.')[0]
 
     if button_id == "connect-spotify":
-        sp = connect_to_spotify()
-        return "Connecting to Spotify...", sp
+        print("Connecting to Spotify...")
+        sp = _sptf_auth.connect_to_spotify()
+        access_token = sp.auth_manager.get_access_token(as_dict=False)
+
+        return "Connected to Spotify!", {"access_token": access_token}
     elif button_id == "find-match":
         return "Finding matching covers...", Dash.no_update
     elif button_id == "upload-picture":
@@ -169,9 +176,16 @@ def use_of_spotify_client(sp):
         return None
 
 
+def update_matching_covers(n_clicks):
+    if not n_clicks:
+        return dash.no_update  # Prevent updates if not clicked
+    # Example: Return an empty list or fetched data
+    return []
 
 #mettre une condition dans find match pour savoir si on utilise la variable locale ou le fichier csv pour trouver le match 
 # en fonction de si on vuet mettre à jour la liste ou pas 
+#Après s'être connecté à sptify, les derniers sons sont ajoutés en arriere plan, une comparaison avec la liste saved est faite pour annoncer combien de nouveaux sons sont apparus;
+#Un radio button pour choisir si on veut mettre à jour la liste ou pas au moment ou on clique sur find match
         # #root and path of savved tracks list
         # # to save in constant file 
         # file_name = "liked_tracks_playlist.csv"
