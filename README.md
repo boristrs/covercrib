@@ -11,7 +11,7 @@ Functionality:
 
 
 tf_lite can be used for a future integration to mobile app with kivy.
-Personnal keys to connect to my spotify are not given here. For now it is necessary to create your owns with spotify developers and add it to an .env file like:
+Personnal keys to connect to my spotify are not given here. For now it is necessary to create your owns with spotify developers and add it to an .env file like: <br>
 SPOTIFY_CLIENT_SECRET="" <br>
 SPOTIFY_CLIENT_ID="" <br>
 SPOTIFY_REDIRECT_URI="http://localhost:8888/callback" <br>
@@ -20,10 +20,11 @@ Thus my liked songs are not given neither, because yours are automatically extra
 
 
 TODO: 
-To be able to extract other playlist than just liked songs <br>
-Update .h5 features files if asked only with songs not already featurized <br>
-Add a function to display the input image and the top 5 similar albums <br>
-Switch to Kivy for a mobile GUI usage <br>
+- Add requirements.txt
+- To be able to extract other playlist than just liked songs <br>
+- Update .h5 features files if asked only with songs not already featurized <br>
+- Add a function to display the input image and the top 5 similar albums <br>
+- Switch to Kivy for a mobile GUI usage <br>
 
 **Exemple:** <br>
 Input: <br>
