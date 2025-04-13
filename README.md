@@ -11,7 +11,7 @@ Functionality:
 
 
 tf_lite can be used for a future integration to mobile app with kivy.
-Personnal keys to connect to my spotify are not given here. For now it is necessary to create your owns with spotify developpers and add it to an .env file like:
+Personnal keys to connect to my spotify are not given here. For now it is necessary to create your owns with spotify developers and add it to an .env file like:
 SPOTIFY_CLIENT_SECRET=""
 SPOTIFY_CLIENT_ID=""
 SPOTIFY_REDIRECT_URI="http://localhost:8888/callback"
@@ -25,19 +25,19 @@ Update .h5 features files if asked only with songs not already featurized
 Add a function to display the input image and the top 5 similar albums
 Switch to Kivy for a mobile GUI usage
 
-Exemple  
-Input:  
+**Exemple ** 
+Input: 
 
-![Input Image](data/input_image/flo-horus.png)  
+    ![Input Image](data/input_image/flo-horus.png)  
 
-Output:  
-Top 3 similar album covers
-album,similarity
-Gotham Ville,0.64898646
-Ma vision,0.64482456
-Dolo,0.644059
+Output:
+    Top 3 similar album covers
+    album,similarity
+    Gotham Ville,0.64898646
+    Ma vision,0.64482456
+    Dolo,0.644059
 
-![Input Image](https://i.scdn.co/image/ab67616d00001e02463773d3c373be91f3c85b1f) 
-![Input Image](https://i.scdn.co/image/ab67616d00001e0274bfdb7062f4b72399f91419)
-![Input Image](https://i.scdn.co/image/ab67616d00001e0275804cf0eac99faae98ddfe5)  
+    ![Input Image](https://i.scdn.co/image/ab67616d00001e02463773d3c373be91f3c85b1f) 
+    ![Input Image](https://i.scdn.co/image/ab67616d00001e0274bfdb7062f4b72399f91419)
+    ![Input Image](https://i.scdn.co/image/ab67616d00001e0275804cf0eac99faae98ddfe5)  
 
