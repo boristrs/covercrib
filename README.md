@@ -1,6 +1,6 @@
 # covercrib
 
-CoverCrib aims to provide the most similar music covers images among your spotify liked music regarding to an input image. 
+CoverCrib aims to provide the most similar music covers images among your spotify liked music regarding to an input image allowing you to easily match the mood of your photo with a music cover style. 
 Functionality:
 - If a precomputed features file exists (`data/liked_tracks_cover_features.h5`), it loads the features and album names.
 - If the features file does not exist, it connects to Spotify, extracts liked songs, and computes with mobileNet v2 features  for them.
